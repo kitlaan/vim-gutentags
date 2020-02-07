@@ -172,7 +172,11 @@ function! gutentags#get_project_file_list_cmd(path) abort
         if type(l:markers) == type({})
             for [marker, file_list_cmd] in items(l:markers)
                 if !empty(globpath(a:path, marker, 1))
-                    return gutentags#validate_cmd(file_list_cmd)
+                    if empty(file_list_cmd)
+                        return gutentags#validate_cmd(a:path . '/' . marker)
+                    else
+                        return gutentags#validate_cmd(file_list_cmd)
+                    endif
                 endif
             endfor
         endif
