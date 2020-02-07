@@ -31,6 +31,7 @@ endif
 
 " Gutentags Module Interface {{{
 
+let s:runner_exe = '"' . gutentags#get_plat_file('update_gtags') . '"'
 let s:added_db_files = {}
 
 function! s:add_db(db_file) abort
@@ -82,13 +83,18 @@ function! gutentags#gtags_cscope#generate(proj_dir, tags_file, gen_opts) abort
     let l:db_path = fnamemodify(a:tags_file, ':p:h')
 
     let l:proj_options_file = a:proj_dir . '/' . g:gutentags_gtags_options_file
+    let l:file_list_cmd = gutentags#get_project_file_list_cmd(l:proj_dir)
 
-    let l:cmd = ['"'.g:gutentags_gtags_executable.'"']
-    if filereadable(l:proj_options_file)
-        let l:proj_options = readfile(l:proj_options_file)
-        let l:cmd += l:proj_options
+    " Build the command line.
+    let l:cmd = [s:runner_exe]
+    let l:cmd += ['-e', '"' . g:gutentags_gtags_executable . '"']
+    if !empty(l:proj_options_file)
+        let l:cmd += ['-o', '"' . l:proj_options_file . '"']
     endif
-    let l:cmd += ['--incremental', '"'.l:db_path.'"']
+    if !empty(l:file_list_cmd)
+        let l:cmd += ['-L', '"' . l:file_list_cmd . '"']
+    endif
+    let l:cmd += ['-p', '"' . l:db_path . '"']
     let l:cmd = gutentags#make_args(l:cmd)
 
     call gutentags#trace("Running: " . string(l:cmd))
